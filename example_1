@@ -1,0 +1,99 @@
+import matplotlib.pyplot as plt
+
+# Input cash flows
+salary = float(input("Enter salary: "))
+bonus = float(input("Enter bonus: "))
+rsus = float(input("Enter RSUs: "))
+expenses = float(input("Enter expenses: "))
+savings = float(input("Enter savings: "))
+pre_tax_401k = float(input("Enter pre-tax 401k contributions: "))
+filing_status = input("Enter your filing status (single/married): ")
+
+# Calculate total income
+income = salary + bonus + rsus
+
+# Adjust taxable income with pre-tax 401k contributions
+taxable_income = income - pre_tax_401k
+
+# Calculate FICA taxes
+social_security_tax_rate = 0.062
+medicare_tax_rate = 0.0145
+social_security_tax = salary * social_security_tax_rate
+medicare_tax = salary * medicare_tax_rate
+fica_taxes = social_security_tax + medicare_tax
+
+# Calculate federal tax based on filing status
+if filing_status.lower() == "single":
+    standard_deduction = 12400
+    taxable_income -= standard_deduction
+    if taxable_income <= 9875:
+        federal_tax = taxable_income * 0.1
+    elif taxable_income <= 40125:
+        federal_tax = 987.50 + (taxable_income - 9875) * 0.12
+    elif taxable_income <= 85525:
+        federal_tax = 4617.50 + (taxable_income - 40125) * 0.22
+    elif taxable_income <= 163300:
+        federal_tax = 14605.50 + (taxable_income - 85525) * 0.24
+    elif taxable_income <= 207350:
+        federal_tax = 33271.50 + (taxable_income - 163300) * 0.32
+    elif taxable_income <= 518400:
+        federal_tax = 47367.50 + (taxable_income - 207350) * 0.35
+    else:
+        federal_tax = 156235 + (taxable_income - 518400) * 0.37
+elif filing_status.lower() == "married":
+    standard_deduction = 24800
+    taxable_income -= standard_deduction
+    if taxable_income <= 19750:
+        federal_tax = taxable_income * 0.1
+    elif taxable_income <= 80250:
+        federal_tax = 1975 + (taxable_income - 19750) * 0.12
+    elif taxable_income <= 171050:
+        federal_tax = 9235 + (taxable_income - 80250) * 0.22
+    elif taxable_income <= 326600:
+        federal_tax = 29211 + (taxable_income - 171050) * 0.24
+    elif taxable_income <= 414700:
+        federal_tax = 66543 + (taxable_income - 326600) * 0.32
+    elif taxable_income <= 622050:
+        federal_tax = 94735 + (taxable_income - 414700) * 0.35
+    else:
+        federal_tax = 167307.50 + (taxable_income - 622050) * 0.37
+else:
+    print("Invalid filing status. Please enter 'single' or 'married'.")
+    exit()
+
+# Calculate net cash flow
+net_cash_flow = income - expenses - savings - federal_tax - fica_taxes - pre_tax_401k
+
+# Print tax liabilities
+print("Federal Tax Liability for Salary: {:.2f}".format(salary * (federal_tax / income)))
+print("Federal Tax Liability for Bonus: {:.2f}".format(bonus * (federal_tax / income)))
+print("Federal Tax Liability for RSUs: {:.2f}".format(rsus * (federal_tax / income)))
+print("Social Security Tax: {:.2f}".format(social_security_tax))
+print("Medicare Tax: {:.2f}".format(medicare_tax))
+
+# Prepare data for visualization
+categories = ['Total Income', 'Total Expenses', 'Total Taxes', '401(k)', 'Savings', 'Net Cash Flow']
+amounts = [salary + bonus + rsus, expenses, federal_tax + fica_taxes, pre_tax_401k, savings, net_cash_flow]
+colors = ['gray', 'cyan', 'gray', 'yellow', 'magenta', 'green' if net_cash_flow >= 0 else 'red']
+# Visualization
+fig, ax = plt.subplots()
+
+# Create individual bars for each category
+categories = ["Salary", "Bonus", "RSUs", "401(k)", "Expenses", "Federal Taxes", "FICA", "Savings", "Net Cash Flow"]
+amounts = [salary, bonus, rsus, pre_tax_401k, expenses, federal_tax, fica_taxes, savings, net_cash_flow]
+colors = ["limegreen", "darkgreen", "green", "purple", "blue", "orange", "red", "gray", "green" if net_cash_flow >= 0 else "red"]
+
+bars = ax.barh(categories, amounts, color=colors)
+
+# Add subtotals as text labels within the bars, rounded to the nearest whole dollar
+for i, bar in enumerate(bars):
+    subtotal = round(amounts[i])
+    ax.text(bar.get_x() + bar.get_width() / 2, bar.get_y() + bar.get_height() / 2, f'{subtotal:,}',
+            ha='center', va='center', fontsize=8, fontweight='bold', color='white')
+
+# Set chart title and labels
+ax.set_title('Cash Flow Components')
+ax.set_xlabel('Amount ($)')
+ax.set_ylabel('Category')
+
+plt.show()
